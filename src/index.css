@@ -1,0 +1,13 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+#root {
+  width: 100vw;
+  height: 100dvh;
+  background: radial-gradient(grey, black 80%);
+}
+
+body {
+  margin: 0;
+}
