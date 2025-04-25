@@ -3,13 +3,11 @@ import { Canvas } from "@react-three/fiber";
 import { Suspense } from "react";
 import { Experience } from "./components/Experience";
 import { UI } from "./components/UI";
-import CameraControlButton from "./components/CameraControlButton";
 
 function App() {
   return (
     <>
       <UI />
-      <CameraControlButton />
       <Loader />
       <Canvas
         shadows
