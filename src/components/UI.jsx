@@ -1,9 +1,9 @@
 import { atom, useAtom } from "jotai";
 import { useEffect } from "react";
 
-const pictures = ["02", "03", "04", "05", "07", "08", "09", "11", "12", "13"];
-// const pictures = ["02", "03", "04", "05"];
+const pictures = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10"];
 
+export const isFlippingAtom = atom(false);
 export const pageAtom = atom(0);
 export const pages = [
   {
@@ -35,57 +35,81 @@ for (let i = 0; i < pictures.length; i += 2) {
 
 export const UI = () => {
   const [page, setPage] = useAtom(pageAtom);
+  const [isFlipping] = useAtom(isFlippingAtom);
 
   useEffect(() => {
     const audio = new Audio("/audios/page-flip-01a.mp3");
     audio.play();
+
+    // scroll the thumbnail stripe to show the thumbnail
+    const thumbs = document.querySelectorAll(".referenceThumb");
+    thumbs.forEach((thumb, index) => {
+      if (page === index) {
+        // Scroll the thumbnail into view
+        thumb.scrollIntoView({
+          behavior: "smooth",
+          block: "nearest",
+          inline: "center",
+        });
+      }
+    });
   }, [page]);
+
+  const handlePageChange = (newPage) => {
+    if (isFlipping) {
+      return;
+    }
+    setPage(newPage);
+  };
 
   return (
     <>
-      <main className=" pointer-events-none select-none z-10 fixed inset-0 flex justify-end flex-col">
+      <main className="pointer-events-none select-none z-10 fixed inset-0 flex justify-end flex-col">
         <div className="w-full overflow-auto pointer-events-auto flex justify-center">
-          <div className="flex items-center gap-1 max-w-full p-4">
+          <div className="referenceThumbs flex items-center gap-1 max-w-full p-4">
             <div
-              className={`flex items-center border-transparent hover:border-white transition-all duration-300 px-1 py-2 border shrink-0 ${
+              className={`referenceThumb flex items-center border-transparent hover:border-white transition-all duration-300 px-1 py-2 border shrink-0 ${
                 0 === page ? "bg-white/30" : ""
               }`}
-              onClick={() => setPage(0)}
+              onClick={() => handlePageChange(0)}
+              disabled={isFlipping}
             >
               <img
-                src={`/textures/book-cover.png`}
+                src={`/textures/book-cover.jpg`}
                 className={`max-h-[100px] w-auto object-contain`}
               />
             </div>
             {[...pagesOnly].map((pageOnly, index) => (
               <div
                 key={index}
-                className={`flex items-center border-transparent hover:border-white transition-all duration-300 px-2 py-2 border shrink-0 ${
+                className={`referenceThumb flex items-center border-transparent hover:border-white transition-all duration-300 px-2 py-2 border shrink-0 ${
                   index + 1 === page ? "bg-white/30" : ""
                 }`}
-                onClick={() => setPage(index + 1)}
+                onClick={() => handlePageChange(index + 1)}
+                disabled={isFlipping}
               >
                 <img
                   key={`left-${index}`}
-                  src={`/textures/${pageOnly.left}.png`}
+                  src={`/textures/${pageOnly.left}.jpg`}
                   className={`max-h-[100px] w-auto object-contain`}
                 />
                 <img
                   key={`right-${index}`}
-                  src={`/textures/${pageOnly.right}.png`}
+                  src={`/textures/${pageOnly.right}.jpg`}
                   className={`max-h-[100px] w-auto object-contain`}
                 />
               </div>
             ))}
 
             <div
-              className={`flex items-center border-transparent hover:border-white transition-all duration-300 px-2 py-2 border shrink-0 ${
+              className={`referenceThumb flex items-center border-transparent hover:border-white transition-all duration-300 px-2 py-2 border shrink-0 ${
                 pages.length === page ? "bg-white/30" : ""
               }`}
-              onClick={() => setPage(pages.length)}
+              onClick={() => handlePageChange(pages.length)}
+              disabled={isFlipping}
             >
               <img
-                src={`/textures/book-back.png`}
+                src={`/textures/book-back.jpg`}
                 className={`max-h-[100px] w-auto object-contain`}
               />
             </div>

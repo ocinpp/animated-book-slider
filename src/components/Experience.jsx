@@ -15,18 +15,6 @@ export const Experience = () => {
     setControls((prev) => ({ ...prev, controlsRef }));
   }, []);
 
-  // Optional: Smooth transition logic
-  // useFrame(() => {
-  //   if (targetPosition && controlsRef.current) {
-  //     const camera = controlsRef.current.object;
-  //     camera.position.lerp(targetPosition, 0.1); // Smoothly interpolate
-  //     controlsRef.current.update();
-  //     if (camera.position.distanceTo(targetPosition) < 0.01) {
-  //       setControls((prev) => ({ ...prev, targetPosition: null })); // Stop when close enough
-  //     }
-  //   }
-  // });
-
   return (
     <>
       <Book />
