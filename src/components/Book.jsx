@@ -18,7 +18,7 @@ import {
   Vector3,
 } from "three";
 import { degToRad } from "three/src/math/MathUtils.js";
-import { pageAtom, pages } from "./UI";
+import { pageAtom, isFlippingAtom, pages } from "./UI";
 
 const easingFactor = 0.5; // Controls the speed of the easing
 const easingFactorFold = 0.3; // Controls the speed of the easing
@@ -27,9 +27,7 @@ const outsideCurveStrength = 0.02; // Controls the strength of the curve
 const turningCurveStrength = 0.02; // Controls the strength of the curve
 
 const PAGE_WIDTH = 1.28;
-const PAGE_HEIGHT = 1.71; // 4:3 aspect ratio
-// const PAGE_WIDTH = 1.2;
-// const PAGE_HEIGHT = 1.2;
+const PAGE_HEIGHT = 1.6; // 4:5 aspect ratio
 const PAGE_DEPTH = 0.001;
 const PAGE_SEGMENTS = 60;
 const SEGMENT_WIDTH = PAGE_WIDTH / PAGE_SEGMENTS;
@@ -89,8 +87,8 @@ const pageMaterials = [
 ];
 
 pages.forEach((page) => {
-  useTexture.preload(`/textures/${page.front}.png`);
-  useTexture.preload(`/textures/${page.back}.png`);
+  useTexture.preload(`/textures/${page.front}.jpg`);
+  useTexture.preload(`/textures/${page.back}.jpg`);
 });
 
 const Page = ({
@@ -100,11 +98,12 @@ const Page = ({
   page,
   bookOpened,
   bookClosed,
+  isFlipping,
   ...props
 }) => {
   const [picture, picture2] = useTexture([
-    `/textures/${front}.png`,
-    `/textures/${back}.png`,
+    `/textures/${front}.jpg`,
+    `/textures/${back}.jpg`,
   ]);
 
   picture.colorSpace = picture2.colorSpace = SRGBColorSpace;
@@ -164,14 +163,6 @@ const Page = ({
     if (!skinnedMeshRef.current) {
       return;
     }
-
-    // const emissiveIntensity = highlighted ? 0 : 0;
-    // skinnedMeshRef.current.material[4].emissiveIntensity =
-    //   skinnedMeshRef.current.material[5].emissiveIntensity = MathUtils.lerp(
-    //     skinnedMeshRef.current.material[4].emissiveIntensity,
-    //     emissiveIntensity,
-    //     0.1
-    //   );
 
     if (lastOpened.current !== bookOpened) {
       turnedAt.current = +new Date();
@@ -233,6 +224,8 @@ const Page = ({
 
   const [_, setPage] = useAtom(pageAtom);
   const [highlighted, setHighlighted] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [isDown, setIsDown] = useState(false);
   useCursor(highlighted);
 
   return (
@@ -247,10 +240,30 @@ const Page = ({
         e.stopPropagation();
         setHighlighted(false);
       }}
-      onClick={(e) => {
+      onPointerMove={(e) => {
         e.stopPropagation();
-        setPage(bookOpened ? number : number + 1);
+        if (isDown) {
+          setIsDragging(true);
+        }
+      }}
+      onPointerDown={(e) => {
+        if (isFlipping) {
+          return;
+        }
+        e.stopPropagation();
+        setIsDown(true);
+      }}
+      onPointerUp={(e) => {
+        if (isFlipping) {
+          return;
+        }
+        e.stopPropagation();
+        if (!isDragging) {
+          setPage(bookOpened ? number : number + 1);
+        }
         setHighlighted(false);
+        setIsDragging(false);
+        setIsDown(false);
       }}
     >
       <primitive
@@ -265,34 +278,64 @@ const Page = ({
 export const Book = ({ ...props }) => {
   const [page] = useAtom(pageAtom);
   const [delayedPage, setDelayedPage] = useState(page);
+  const [_, setIsFlipping] = useAtom(isFlippingAtom);
+  const isFlippingRef = useRef(false);
+  const timeoutsRef = useRef([]);
 
   useEffect(() => {
+    const clearAllTimeouts = () => {
+      timeoutsRef.current.forEach(clearTimeout);
+      timeoutsRef.current = [];
+    };
+
     let timeout;
+    let timeouts = [];
+
     const goToPage = () => {
       setDelayedPage((delayedPage) => {
         if (page === delayedPage) {
+          // flipping animation completes
+          setIsFlipping(false);
+          isFlippingRef.current = false;
           return delayedPage;
         } else {
-          timeout = setTimeout(
+          // continue to animate
+          if (!isFlippingRef.current) {
+            setIsFlipping(true);
+            isFlippingRef.current = true;
+          }
+
+          const timeout = setTimeout(
             () => {
               goToPage();
             },
             Math.abs(page - delayedPage) > 2 ? 50 : 150
           );
+
+          timeoutsRef.current.push(timeout);
+
+          // go next page
           if (page > delayedPage) {
             return delayedPage + 1;
           }
+
+          // go previous page
           if (page < delayedPage) {
             return delayedPage - 1;
           }
+
+          return delayedPage;
         }
       });
     };
+
+    clearAllTimeouts();
     goToPage();
+
     return () => {
-      clearTimeout(timeout);
+      clearAllTimeouts();
     };
-  }, [page]);
+  }, [page, setIsFlipping]);
 
   return (
     <group {...props} rotation-y={-Math.PI / 2}>
@@ -303,6 +346,7 @@ export const Book = ({ ...props }) => {
           number={index}
           bookOpened={delayedPage > index}
           bookClosed={delayedPage === 0 || delayedPage === pages.length}
+          isFlipping={isFlippingRef.current}
           {...pageData}
         />
       ))}
