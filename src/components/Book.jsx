@@ -221,8 +221,8 @@ const Page = ({
 
   const [_, setPage] = useAtom(pageAtom);
   const [highlighted, setHighlighted] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
-  const [isDown, setIsDown] = useState(false);
+  const isDraggingRef = useRef(false);
+  const isDownRef = useRef(false);
 
   useCursor(highlighted);
 
@@ -243,8 +243,8 @@ const Page = ({
 
         // handle dragging for mouse only
         if (e.pointerType === "mouse") {
-          if (isDown) {
-            setIsDragging(true);
+          if (isDownRef.current) {
+            isDraggingRef.current = true;
           }
         }
       }}
@@ -253,19 +253,20 @@ const Page = ({
           return;
         }
         e.stopPropagation();
-        setIsDown(true);
+        isDownRef.current = true;
       }}
       onPointerUp={(e) => {
         if (isFlipping) {
           return;
         }
         e.stopPropagation();
-        if (!isDragging) {
+        if (!isDraggingRef.current) {
           setPage(bookOpened ? number : number + 1);
         }
         setHighlighted(false);
-        setIsDragging(false);
-        setIsDown(false);
+
+        isDraggingRef.current = false;
+        isDownRef.current = false;
       }}
     >
       <primitive
