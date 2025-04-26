@@ -36,7 +36,7 @@ export const Experience = () => {
           TWO: THREE.TOUCH.DOLLY_PAN,
         }}
       />
-      <Environment preset="studio" environmentIntensity={0.3}></Environment>
+      <Environment preset="studio" environmentIntensity={0.5}></Environment>
       <directionalLight
         position={[0, 1, 0]}
         intensity={1}
