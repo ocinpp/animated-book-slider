@@ -223,6 +223,7 @@ const Page = ({
   const [highlighted, setHighlighted] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [isDown, setIsDown] = useState(false);
+
   useCursor(highlighted);
 
   return (
@@ -239,8 +240,12 @@ const Page = ({
       }}
       onPointerMove={(e) => {
         e.stopPropagation();
-        if (isDown) {
-          setIsDragging(true);
+
+        // handle dragging for mouse only
+        if (e.pointerType === "mouse") {
+          if (isDown) {
+            setIsDragging(true);
+          }
         }
       }}
       onPointerDown={(e) => {
@@ -284,9 +289,6 @@ export const Book = ({ ...props }) => {
       timeoutsRef.current.forEach(clearTimeout);
       timeoutsRef.current = [];
     };
-
-    let timeout;
-    let timeouts = [];
 
     const goToPage = () => {
       setDelayedPage((delayedPage) => {
