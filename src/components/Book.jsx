@@ -133,16 +133,16 @@ const Page = ({
       new MeshStandardMaterial({
         color: whiteColor,
         map: picture,
-        roughness: 1,
-        metalness: 0,
+        roughness: 0.8,
+        metalness: 0.7,
         // emissive: emissiveColor,
         // emissiveIntensity: 0,
       }),
       new MeshStandardMaterial({
         color: whiteColor,
         map: picture2,
-        roughness: 1,
-        metalness: 0,
+        roughness: 0.8,
+        metalness: 0.7,
         // emissive: emissiveColor,
         // emissiveIntensity: 0.1,
       }),
@@ -153,11 +153,8 @@ const Page = ({
     mesh.frustumCulled = false;
     mesh.add(skeleton.bones[0]);
     mesh.bind(skeleton);
-    // mesh.position.x = -0.5;
     return mesh;
   }, []);
-
-  // useHelper(skinnedMeshRef, SkeletonHelper, "red");
 
   useFrame((_, delta) => {
     if (!skinnedMeshRef.current) {
